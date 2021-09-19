@@ -19,3 +19,7 @@ jobs:
         run: |
           . ./venv/bin/activate
           build.py
+      - uses: actions/upload-artifact@v2
+        with:
+          name: macos-build
+          path: LLVMEmbeddedToolchainForArm*.gz
