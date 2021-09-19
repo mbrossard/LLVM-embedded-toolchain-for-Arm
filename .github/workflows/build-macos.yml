@@ -1,0 +1,21 @@
+name: Build (macOS)
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch: ~
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies and prepare build
+        run: |
+          brew install cmake ccache ninja python virtualenv gnu-tar
+          ./setup.sh
+          ln -s /usr/local/bin/gtar venv/bin/tar
+      - name: Build
+        run: |
+          . ./venv/bin/activate
+          build.py
