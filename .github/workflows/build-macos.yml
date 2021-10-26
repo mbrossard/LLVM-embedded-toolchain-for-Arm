@@ -12,9 +12,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install dependencies and prepare build
         run: |
-          brew install cmake ccache ninja python virtualenv gnu-tar
+          brew install cmake ccache ninja python virtualenv
           ./setup.sh
-          ln -s /usr/local/bin/gtar venv/bin/tar
       - name: Build
         run: |
           . ./venv/bin/activate
