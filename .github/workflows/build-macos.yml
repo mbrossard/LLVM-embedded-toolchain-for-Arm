@@ -11,15 +11,31 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies and prepare build
+        id: install
         run: |
-          brew install cmake ccache ninja python virtualenv gnu-tar
+          brew install cmake ccache ninja python virtualenv gnu-tar meson
           ./setup.sh
-          ln -s /usr/local/bin/gtar venv/bin/tar
+          ln -s $(which gtar) venv/bin/tar
+          echo timestamp=$(date +%Y-%m-%d-%H:%M:%S) >> $GITHUB_OUTPUT
+      - name: ccache cache files
+        uses: actions/cache@v3.3.1
+        with:
+          path: .ccache
+          key: ${ { matrix.config.name } }-ccache-${ { steps.install.outputs.timestamp } }
+          restore-keys: |
+            ${ { matrix.config.name } }-ccache-
       - name: Build
         run: |
           . ./venv/bin/activate
-          build.py
+          mkdir -p .ccache build
+          ccache -o cache_dir=$PWD/.ccache
+          ccache -z
+          cmake -S . -B build -GNinja -DFETCHCONTENT_QUIET=OFF \
+            -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          ninja -C build llvm-toolchain
+          ninja -C build package-llvm-toolchain
+          ccache -s
       - uses: actions/upload-artifact@v2
         with:
           name: macos-build
-          path: LLVMEmbeddedToolchainForArm*.gz
+          path: build/LLVMEmbeddedToolchainForArm*.gz
